@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIOT MD - WhatsApp Bot Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            background: #000000;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        /* Hacker-style grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Terminal Header */
+        .terminal-header {
+            background: #0a0a0a;
+            border-bottom: 2px solid #00ff41;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff41;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: #ffffff;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            color: #888888;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: #00ff41;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: #00ff41;
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+
+        .stat-title {
+            color: #888888;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00ff41;
+            margin-top: 0.5rem;
+        }
+
+        /* Pairing Form */
+        .pairing-form {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .pairing-form h2 {
+            color: #00ff41;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #888888;
+            font-size: 0.85rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: #000000;
+            border: 1px solid #1a1a1a;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 1rem;
+            border-radius: 4px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #00ff41;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #666666;
+            font-size: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #00ff41;
+            color: #000000;
+            border: none;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #00cc34;
+            transform: scale(1.02);
+        }
+
+        .btn:disabled {
+            background: #666666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #ff3333;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #cc0000;
+        }
+
+        /* Pairing Result */
+        .pairing-result {
+            background: #0a0a0a;
+            border: 2px solid #00ff41;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .pairing-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00ff41;
+            text-align: center;
+            padding: 20px;
+            background: #000000;
+            border-radius: 5px;
+            letter-spacing: 5px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .table-container h3 {
+            padding: 1rem;
+            color: #00ff41;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        th {
+            color: #00ff41;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 65, 0.05);
+        }
+
+        /* Status Badges */
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background: rgba(0, 255, 65, 0.2);
+            color: #00ff41;
+            border: 1px solid #00ff41;
+        }
+
+        .status-offline {
+            background: rgba(255, 51, 51, 0.2);
+            color: #ff3333;
+            border: 1px solid #ff3333;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888888;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: rgba(255, 51, 51, 0.2);
+            border: 1px solid #ff3333;
+            color: #ff3333;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 65, 0.2);
+            border: 1px solid #00ff41;
+            color: #00ff41;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav {
+                gap: 1rem;
+            }
+            .pairing-code {
+                font-size: 20px;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="logo">RIOT<span>MD</span></div>
+        <nav class="nav">
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/sessions">Sessions</a>
+            <a href="/settings">Settings</a>
+            <a href="/logs">Logs</a>
+        </nav>
+    </div>
+    
+    <div class="dashboard-container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Active Sessions</div>
+                <div class="stat-value" id="activeSessions">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Commands Loaded</div>
+                <div class="stat-value">295</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Bot Status</div>
+                <div class="stat-value" id="botStatus">🟢 Online</div>
+            </div>
+        </div>
+        
+        <!-- Pairing Section -->
+        <div class="pairing-form">
+            <h2>🔐 Connect WhatsApp Account</h2>
+            <p>Enter your phone number with country code to get a pairing code</p>
+            
+            <div class="form-group">
+                <label>📱 Phone Number (with country code)</label>
+                <input type="tel" id="phoneNumber" placeholder="例: 254712345678" autocomplete="off">
+                <small>Examples: 254712345678 (Kenya) | 14155552671 (USA) | 447911123456 (UK)</small>
+            </div>
+            
+            <button class="btn" id="pairBtn" onclick="generatePairingCode()">🚀 Generate Pairing Code</button>
+            
+            <div id="pairingResult" style="display: none;"></div>
+        </div>
+        
+        <!-- Sessions Table -->
+        <div class="table-container">
+            <h3>📱 Active WhatsApp Sessions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phone Number</th>
+                        <th>Status</th>
+                        <th>Connected Since</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sessionsList">
+                    <tr class="loading">
+                        <td colspan="4">Loading sessions... <span class="typing"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Generate Pairing Code
+        async function generatePairingCode() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            if (!phoneNumber) {
+                showAlert('Please enter your phone number', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('pairBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+            
+            try {
+                const response = await fetch('/api/pair', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phoneNumber: phoneNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success with pairing code
+                    document.getElementById('pairingResult').innerHTML = `
+                        <div class="pairing-result">
+                            <h3 style="color: #00ff41; margin-bottom: 15px;">✅ Pairing Code Generated!</h3>
+                            <div class="pairing-code">${data.code || data.fullCode}</div>
+                            <div class="instructions">
+                                <h4>📖 How to connect your WhatsApp:</h4>
+                                <ol>
+                                    <li>Open <strong>WhatsApp</strong> on your phone</li>
+                                    <li>Go to <strong>Settings → Linked Devices</strong></li>
+                                    <li>Tap <strong>"Link a Device"</strong></li>
+                                    <li>Select <strong>"Link with phone number"</strong></li>
+                                    <li>Enter the code: <strong style="color: #00ff41;">${data.code || data.fullCode}</strong></li>
+                                    <li>Wait a few seconds for the bot to connect!</li>
+                                </ol>
+                                <p style="color: #00ff41; margin-top: 15px;">⏳ Waiting for verification... The bot will connect automatically!</p>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('pairingResult').style.display = 'block';
+                    
+                    // Clear input
+                    document.getElementById('phoneNumber').value = '';
+                    
+                    // Refresh sessions after 5, 10, and 20 seconds
+                    setTimeout(loadSessions, 5000);
+                    setTimeout(loadSessions, 10000);
+                    setTimeout(loadSessions, 20000);
+                    
+                    showAlert('Pairing code generated successfully! Check your WhatsApp.', 'success');
+                } else {
+                    showAlert('Error: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Pairing error:', error);
+                showAlert('Error generating code: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+        
+        // Load Active Sessions
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/sessions');
+                const data = await response.json();
+                const tbody = document.getElementById('sessionsList');
+                
+                if (data.sessions && data.sessions.length > 0) {
+                    tbody.innerHTML = data.sessions.map(session => `
+                        <tr>
+                            <td>${session.phoneNumber || 'Unknown'}</td>
+                            <td><span class="status status-online">🟢 ${session.status}</span></td>
+                            <td>${new Date().toLocaleString()}</td>
+                            <td><button onclick="disconnectSession('${session.id}')" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">Disconnect</button></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888;">No active sessions. Generate a pairing code above to connect!</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+                document.getElementById('sessionsList').innerHTML = '<tr><td colspan="4" style="text-align: center; color: #ff3333;">Error loading sessions</td></tr>';
+            }
+        }
+        
+        // Load Statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                document.getElementById('activeSessions').textContent = data.activeSessions || 0;
+                document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                document.getElementById('botStatus').innerHTML = data.status === 'online' ? '🟢 Online' : '🔴 Offline';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('botStatus').innerHTML = '🔴 Offline';
+            }
+        }
+        
+        // Disconnect Session
+        async function disconnectSession(sessionId) {
+            if (confirm('⚠️ Are you sure you want to disconnect this WhatsApp session?\n\nThe bot will stop responding from this account.')) {
+                showAlert('Disconnect feature coming soon. Restart Railway to clear all sessions.', 'error');
+            }
+        }
+        
+        // Show Alert
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '1000';
+            alertDiv.style.maxWidth = '300px';
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Auto-refresh data
+        loadStats();
+        loadSessions();
+        setInterval(loadStats, 10000);
+        setInterval(loadSessions, 15000);
+        
+        // Enter key support
+        document.getElementById('phoneNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generatePairingCode();
+            }
+        });
+    </script>
+</body>
+</html>
