@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIOT MD - Users</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="logo">RIOT<span>MD</span></div>
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/users" class="active">Users</a>
+            <a href="/sessions">Sessions</a>
+            <a href="/settings">Settings</a>
+            <a href="/logs">Logs</a>
+        </nav>
+    </div>
+    
+    <div class="dashboard-container">
+        <h2>👥 Registered Users</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>User ID</th><th>Phone Number</th><th>Status</th><th>Premium</th><th>Commands Used</th><th>Joined</th></tr>
+                </thead>
+                <tbody>
+                    <% if (users && users.length > 0) { %>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td><%= user.userId %></td>
+                                <td><%= user.phoneNumber || 'N/A' %></td>
+                                <td><span class="status status-<%= user.status %>"><%= user.status %></span></td>
+                                <td><%= user.premium ? '✓ Yes' : '✗ No' %></td>
+                                <td><%= user.commandsUsed || 0 %></td>
+                                <td><%= new Date(user.createdAt).toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="6">No users registered yet</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
