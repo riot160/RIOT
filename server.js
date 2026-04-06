@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const http = require('http');
 const socketIO = require('socket.io');
+const pino = require('pino');
 const config = require('./config');
 const database = require('./lib/database');
 const auth = require('./lib/auth');
@@ -130,7 +131,7 @@ app.get('/logs', auth.requireAuth, async (req, res) => {
     res.render('logs', { logs: [] });
 });
 
-// API Routes - PAIRING CODE FIXED
+// API Routes - PAIRING CODE (FULLY FIXED)
 app.post('/api/pair', async (req, res) => {
     const { phoneNumber } = req.body;
     
@@ -152,15 +153,16 @@ app.post('/api/pair', async (req, res) => {
         
         const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
         
+        // Create a proper pino logger (silent mode)
+        const silentLogger = pino({ level: 'silent' });
+        
         const sock = makeWASocket({
             auth: state,
             browser: Browsers.macOS('RIOT MD'),
             printQRInTerminal: false,
-            logger: { level: 'silent' },
-            // Important: Pass crypto explicitly
+            logger: silentLogger,
             generateHighQualityLinkPreview: false,
-            patchMessageBeforeSending: (message) => message,
-            options: { crypto: crypto }
+            patchMessageBeforeSending: (message) => message
         });
         
         // Request pairing code
