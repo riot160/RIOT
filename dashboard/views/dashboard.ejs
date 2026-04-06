@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIOT MD - Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="logo">RIOT<span>MD</span></div>
+        <nav class="nav">
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/sessions">Sessions</a>
+            <a href="/settings">Settings</a>
+        </nav>
+    </div>
+    
+    <div class="dashboard-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Active Sessions</div>
+                <div class="stat-value"><%= stats?.activeSessions || 0 %></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Users</div>
+                <div class="stat-value"><%= stats?.totalUsers || 0 %></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Commands</div>
+                <div class="stat-value"><%= stats?.totalCommands || 295 %></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Uptime</div>
+                <div class="stat-value"><%= Math.floor(stats?.uptime || 0) %>s</div>
+            </div>
+        </div>
+        
+        <div class="pairing-form">
+            <h2>🔐 Connect WhatsApp</h2>
+            <div class="form-group">
+                <label>Phone Number (with country code)</label>
+                <input type="tel" id="phoneNumber" placeholder="例: 254712345678">
+                <small>Example: 254712345678 (Kenya) or 14155552671 (USA)</small>
+            </div>
+            <button class="btn" onclick="generateCode()">Generate Pairing Code</button>
+            <div id="result" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+    
+    <script>
+        async function generateCode() {
+            const phone = document.getElementById('phoneNumber').value;
+            if (!phone) return alert('Enter phone number');
+            
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            
+            const res = await fetch('/api/pair', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({phoneNumber: phone})
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                document.getElementById('result').innerHTML = `
+                    <div style="background:#0a0a0a; border:1px solid #00ff41; padding:20px; border-radius:8px;">
+                        <h3>Code: <span style="color:#00ff41">${data.code}</span></h3>
+                        <p>Enter this code in WhatsApp → Settings → Linked Devices → Link with phone number</p>
+                    </div>
+                `;
+            } else {
+                alert('Error: ' + data.error);
+            }
+            btn.disabled = false;
+            btn.textContent = 'Generate Pairing Code';
+        }
+    </script>
+</body>
+</html>
