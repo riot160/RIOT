@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIOT MD - WhatsApp Bot Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="logo">RIOT<span>MD</span></div>
+        <nav class="nav">
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/sessions">Sessions</a>
+            <a href="/settings">Settings</a>
+        </nav>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Active Sessions</div>
+                <div class="stat-value" id="activeSessions">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Commands Loaded</div>
+                <div class="stat-value" id="totalCommands">295</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Uptime</div>
+                <div class="stat-value" id="uptime">0s</div>
+            </div>
+        </div>
+
+        <!-- Pairing Section -->
+        <div class="pairing-form">
+            <h2>🔐 Connect WhatsApp Account</h2>
+            <p>Enter your phone number with country code to get a pairing code</p>
+            
+            <div class="form-group">
+                <label>Phone Number (with country code)</label>
+                <input type="tel" id="phoneNumber" placeholder="例: 254712345678" value="">
+                <small>Format: [Country Code][Number] - 254712345678 for Kenya</small>
+            </div>
+            
+            <button class="btn" onclick="generatePairingCode()">Generate Pairing Code</button>
+            
+            <div id="pairingResult" style="margin-top: 20px; display: none;">
+                <div style="background: #0a0a0a; border: 1px solid #00ff41; padding: 20px; border-radius: 8px;">
+                    <h3>📱 Pairing Code</h3>
+                    <p style="font-size: 24px; font-weight: bold; color: #00ff41;" id="pairingCode"></p>
+                    <p>Instructions:</p>
+                    <ol>
+                        <li>Open WhatsApp on your phone</li>
+                        <li>Go to Settings → Linked Devices</li>
+                        <li>Tap "Link a Device"</li>
+                        <li>Select "Link with phone number"</li>
+                        <li>Enter the code above</li>
+                    </ol>
+                    <p id="pairingStatus"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sessions List -->
+        <div class="table-container">
+            <h3>Active Sessions</h3>
+            <table id="sessionsTable">
+                <thead>
+                    <tr><th>User ID</th><th>Phone Number</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="sessionsList">
+                    <tr><td colspan="4">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Load stats on page load
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                document.getElementById('activeSessions').textContent = data.activeSessions || 0;
+                document.getElementById('totalUsers').textContent = data.totalUsers || 0;
+                document.getElementById('uptime').textContent = Math.floor(data.uptime) + 's';
+            } catch(e) { console.error(e); }
+        }
+
+        // Load sessions
+        async function loadSessions() {
+            try {
+                const response = await fetch('/api/sessions');
+                const data = await response.json();
+                const tbody = document.getElementById('sessionsList');
+                if (data.sessions && data.sessions.length > 0) {
+                    tbody.innerHTML = data.sessions.map(s => `
+                        <tr>
+                            <td>${s.id}</td>
+                            <td>${s.phoneNumber || 'Pending'}</td>
+                            <td><span class="status status-online">${s.status}</span></td>
+                            <td><button onclick="disconnectSession('${s.id}')" class="btn btn-danger">Disconnect</button></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4">No active sessions. Generate a pairing code above!</td></tr>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // Generate pairing code
+        async function generatePairingCode() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            if (!phoneNumber) {
+                alert('Please enter your phone number');
+                return;
+            }
+            
+            const btn = event.target;
+            btn.textContent = 'Generating...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/pair', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phoneNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('pairingCode').textContent = data.code;
+                    document.getElementById('pairingStatus').innerHTML = '<span style="color: #00ff41;">✓ Waiting for verification... Bot will connect automatically!</span>';
+                    document.getElementById('pairingResult').style.display = 'block';
+                    
+                    // Refresh sessions after 5 seconds
+                    setTimeout(() => loadSessions(), 5000);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Error generating code: ' + e.message);
+            } finally {
+                btn.textContent = 'Generate Pairing Code';
+                btn.disabled = false;
+            }
+        }
+        
+        async function disconnectSession(sessionId) {
+            if (confirm('Disconnect this session?')) {
+                // Implement disconnect API call
+                alert('Disconnect feature coming soon');
+            }
+        }
+        
+        // Load data every 5 seconds
+        loadStats();
+        loadSessions();
+        setInterval(() => { loadStats(); loadSessions(); }, 5000);
+    </script>
+</body>
+  </html>
