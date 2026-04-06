@@ -1,11 +1,12 @@
 {
   "name": "riot-md",
   "version": "1.0.0",
+  "type": "module",
   "description": "Advanced Multi-User WhatsApp Bot with 300+ Commands",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "node --watch index.js"
   },
   "engines": {
     "node": "20.x",
@@ -16,7 +17,6 @@
     "express": "^4.18.2",
     "mongoose": "^7.5.0",
     "socket.io": "^4.6.2",
-    "qrcode-terminal": "^0.12.0",
     "pino": "^9.4.0",
     "dotenv": "^16.3.1",
     "axios": "^1.7.2",
@@ -29,7 +29,7 @@
     "express-rate-limit": "^6.10.0",
     "fs-extra": "^11.2.0",
     "qrcode": "^1.5.3",
-    "chalk": "^4.1.2",
+    "chalk": "^5.3.0",
     "moment": "^2.29.4",
     "uuid": "^9.0.1",
     "compression": "^1.7.4"
