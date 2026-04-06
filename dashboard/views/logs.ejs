@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIOT MD - Logs</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .log-container {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 500px;
+            overflow-y: scroll;
+        }
+        .log-line {
+            color: #00ff41;
+            border-bottom: 1px solid #1a1a1a;
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="logo">RIOT<span>MD</span></div>
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/sessions">Sessions</a>
+            <a href="/settings">Settings</a>
+            <a href="/logs" class="active">Logs</a>
+        </nav>
+    </div>
+    
+    <div class="dashboard-container">
+        <h2>📋 System Logs</h2>
+        <div class="log-container" id="logContainer">
+            <% if (logs && logs.length > 0) { %>
+                <% logs.forEach(log => { %>
+                    <div class="log-line">[<%= log.timestamp %>] <%= log.message %></div>
+                <% }) %>
+            <% } else { %>
+                <div class="log-line">No logs available</div>
+            <% } %>
+        </div>
+        <button class="btn" onclick="location.reload()" style="margin-top: 20px;">Refresh Logs</button>
+    </div>
+</body>
+</html>
