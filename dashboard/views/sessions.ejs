@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIOT MD - Sessions</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="terminal-header">
+        <div class="logo">RIOT<span>MD</span></div>
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/sessions" class="active">Sessions</a>
+            <a href="/settings">Settings</a>
+            <a href="/logs">Logs</a>
+        </nav>
+    </div>
+    
+    <div class="dashboard-container">
+        <h2>📱 WhatsApp Sessions</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Session ID</th><th>Phone Number</th><th>Status</th><th>Last Seen</th></tr>
+                </thead>
+                <tbody>
+                    <% if (sessions && sessions.length > 0) { %>
+                        <% sessions.forEach(session => { %>
+                            <tr>
+                                <td><%= session.id %></td>
+                                <td><%= session.phoneNumber || 'Pending' %></td>
+                                <td><span class="status status-<%= session.status %>"><%= session.status %></span></td>
+                                <td><%= session.lastSeen ? new Date(session.lastSeen).toLocaleString() : 'Never' %></td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="4">No active sessions</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
