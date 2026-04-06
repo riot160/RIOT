@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: riot-md
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: PREFIX
+        sync: false
+      - key: OWNER_NUMBER
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
